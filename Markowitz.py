@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import quantstats as qs
 import gurobipy as gp
 
+pd.set_option('future.no_silent_downcasting', True)
+
 assets = ['SPY', 'XLB', 'XLC', 'XLE', 'XLF', 'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
 
 start = '2019-01-01'
@@ -20,7 +22,6 @@ for asset in assets:
 # Initialize df and df_returns
 df = portfolio_data = data.pivot_table(index='Date', columns='Symbol', values='Adj Close')
 df_returns = df.pct_change().fillna(0)
-
 
 
 
@@ -57,7 +58,7 @@ class EqualWeightPortfolio:
 
         return self.portfolio_weights, self.portfolio_returns
 
-eqw = EqualWeightPortfolio('SPY')
+eqw = EqualWeightPortfolio('SPY').get_results()
 
 
 # (2). Implement a risk parity strategy as dataframe "rp". Do not include SPY.
@@ -98,7 +99,7 @@ class RiskParityPortfolio:
 
         return self.portfolio_weights, self.portfolio_returns
 
-rp = RiskParityPortfolio('SPY')
+rp = RiskParityPortfolio('SPY').get_results()
 
 
 # (3). Implement a Markowitz strategy as dataframe "mv". Do not include SPY.
@@ -181,16 +182,11 @@ class MeanVariancePortfolio:
 
         return self.portfolio_weights, self.portfolio_returns
     
-mv_list = [MeanVariancePortfolio('SPY'),
-           MeanVariancePortfolio('SPY', gamma=100),
-           MeanVariancePortfolio('SPY', lookback=100),
-           MeanVariancePortfolio('SPY', lookback=100, gamma=100),
+mv_list = [MeanVariancePortfolio('SPY').get_results(),
+           MeanVariancePortfolio('SPY', gamma=100).get_results(),
+           MeanVariancePortfolio('SPY', lookback=100).get_results(),
+           MeanVariancePortfolio('SPY', lookback=100, gamma=100).get_results(),
            ]
-
-
-# (4.1). Create your own strategy here.
-
-
 
 
 def plot_performance(strategy_list=None):
@@ -198,12 +194,12 @@ def plot_performance(strategy_list=None):
     fig, ax = plt.subplots()
     
     (1+df_returns['SPY']).cumprod().plot(ax=ax, label='SPY')
-    (1+eqw.get_results()[1]['Portfolio']).cumprod().plot(ax=ax, label='equal_weight')
-    (1+rp.get_results()[1]['Portfolio']).cumprod().plot(ax=ax, label='risk_parity')
+    (1+eqw[1]['Portfolio']).cumprod().plot(ax=ax, label='equal_weight')
+    (1+rp[1]['Portfolio']).cumprod().plot(ax=ax, label='risk_parity')
     
     if strategy_list!=None:
         for i, strategy in enumerate(strategy_list):
-            (1+strategy.get_results()[1]['Portfolio']).cumprod().plot(ax=ax, label=f'strategy {i+1}')
+            (1+strategy[1]['Portfolio']).cumprod().plot(ax=ax, label=f'strategy {i+1}')
 
     ax.set_title('Cumulative Returns')
     ax.set_xlabel('Date')
@@ -229,27 +225,28 @@ def plot_allocation(df_weights):
 
 def report_metrics():
     df_bl = pd.DataFrame()
-    df_bl['EQW'] = eqw.get_results()[1]['Portfolio']
-    df_bl['RP'] = rp.get_results()[1]['Portfolio']
+    df_bl['EQW'] = pd.to_numeric(eqw[1]['Portfolio'], errors='coerce')
+    df_bl['RP'] = pd.to_numeric(rp[1]['Portfolio'], errors='coerce')
     df_bl['SPY'] = df_returns['SPY']
     for i, strategy in enumerate(mv_list):
-        df_bl[f'MV {i+1}'] = strategy.get_results()[1]['Portfolio']
+        df_bl[f'MV {i+1}'] = pd.to_numeric(strategy[1]['Portfolio'], errors='coerce')
         # You can add your strategy here.
 
-    df_metrics = qs.reports.metrics(df_bl, mode="full", display=True)
+    qs.reports.metrics(df_bl, mode="full", display=True)
 
 # You can use the following to test:
 # (1+df_returns).cumprod().plot()
-# plot_allocation(eqw.get_results()[0])
-# plot_allocation(rp.get_results()[0])
-# plot_allocation(mv_list[0].get_results()[0])
-# plot_allocation(mv_list[1].get_results()[0])
+# plot_performance(mv_list)
+# plot_allocation(eqw[0])
+# plot_allocation(rp[0])
+# plot_allocation(mv_list[0][0])
+# plot_allocation(mv_list[1][0])
 # report_metrics()
 # ...
 
 
-ans_list = [eqw.get_results()[0], rp.get_results()[0]]
+ans_list = [eqw[0], rp[0]]
 for mv_i in mv_list:
-    ans_list.append(mv_i.get_results()[0])
+    ans_list.append(mv_i[0])
         
 print(ans_list)
