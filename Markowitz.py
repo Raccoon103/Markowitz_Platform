@@ -182,12 +182,15 @@ class MeanVariancePortfolio:
         return self.portfolio_weights, self.portfolio_returns
     
 mv_list = [MeanVariancePortfolio('SPY'),
-           #MeanVariancePortfolio('SPY', gamma=100),
+           MeanVariancePortfolio('SPY', gamma=100),
            MeanVariancePortfolio('SPY', lookback=100),
-           #MeanVariancePortfolio('SPY', lookback=100, gamma=100),
-           MeanVariancePortfolio('SPY', lookback=200),
-           #MeanVariancePortfolio('SPY', lookback=200, gamma=100),
+           MeanVariancePortfolio('SPY', lookback=100, gamma=100),
            ]
+
+
+# (4.1). Create your own strategy here.
+
+
 
 
 def plot_performance(strategy_list=None):
@@ -201,7 +204,6 @@ def plot_performance(strategy_list=None):
     if strategy_list!=None:
         for i, strategy in enumerate(strategy_list):
             (1+strategy.get_results()[1]['Portfolio']).cumprod().plot(ax=ax, label=f'strategy {i+1}')
-    
 
     ax.set_title('Cumulative Returns')
     ax.set_xlabel('Date')
@@ -225,14 +227,6 @@ def plot_allocation(df_weights):
     plt.show()
     return None
 
-# You can use the following to test:
-# (1+df_returns).cumprod().plot()
-# plot_allocation(eqw.get_results()[0])
-# plot_allocation(rp.get_results()[0])
-# plot_allocation(mv_list[0].get_results()[0])
-# plot_allocation(mv_list[1].get_results()[0])
-# ...
-
 def report_metrics():
     df_bl = pd.DataFrame()
     df_bl['EQW'] = eqw.get_results()[1]['Portfolio']
@@ -240,7 +234,22 @@ def report_metrics():
     df_bl['SPY'] = df_returns['SPY']
     for i, strategy in enumerate(mv_list):
         df_bl[f'MV {i+1}'] = strategy.get_results()[1]['Portfolio']
+        # You can add your strategy here.
 
     df_metrics = qs.reports.metrics(df_bl, mode="full", display=True)
 
-report_metrics()
+# You can use the following to test:
+# (1+df_returns).cumprod().plot()
+# plot_allocation(eqw.get_results()[0])
+# plot_allocation(rp.get_results()[0])
+# plot_allocation(mv_list[0].get_results()[0])
+# plot_allocation(mv_list[1].get_results()[0])
+# report_metrics()
+# ...
+
+
+ans_list = [eqw.get_results()[0], rp.get_results()[0]]
+for mv_i in mv_list:
+    ans_list.append(mv_i.get_results()[0])
+        
+print(ans_list)
