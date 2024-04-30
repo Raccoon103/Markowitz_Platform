@@ -4,8 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import quantstats as qs
 import gurobipy as gp
-
-pd.set_option('future.no_silent_downcasting', True)
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 assets = ['SPY', 'XLB', 'XLC', 'XLE', 'XLF', 'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY']
 
