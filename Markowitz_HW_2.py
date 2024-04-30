@@ -95,13 +95,17 @@ def plot_allocation(df_weights):
     plt.show()
     return None
 
-def report_metrics(price, strategy):
+def report_metrics(price, strategy, show=False):
     df_bl = pd.DataFrame()
     returns = price.pct_change().fillna(0)
     df_bl['SPY'] = returns['SPY']
     df_bl[f'MP'] = pd.to_numeric(strategy[1]['Portfolio'], errors='coerce')
 
-    qs.reports.metrics(df_bl, mode="full", display=True)
+    qs.reports.metrics(df_bl, mode="full", display=show)
+    
+    sharpe_ratio = qs.stats.sharpe(df_bl)
+    
+    return sharpe_ratio
 
 # You can use the following to test:
 # (1+df.pct_change().fillna(0)).cumprod().plot()
@@ -112,5 +116,9 @@ def report_metrics(price, strategy):
 # plot_performance(Bdf, Bmp)
 # plot_allocation(Bmp[0])
 
-report_metrics(df, mp)
-report_metrics(Bdf, Bmp)
+# report_metrics(df, mp, show=True)
+# report_metrics(Bdf, Bmp, show=True)
+
+
+print(report_metrics(df, mp)[1] > 1)
+print(report_metrics(Bdf, Bmp)[1] > report_metrics(Bdf, Bmp)[0])
